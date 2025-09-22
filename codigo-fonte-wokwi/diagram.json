@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "author": "Arnaldo Viana",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": -4.9, "left": 62.2, "attrs": {} },
+    {
+      "type": "wokwi-rgb-led",
+      "id": "rgb1",
+      "top": -72.8,
+      "left": 193.1,
+      "attrs": { "common": "cathode" }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": 131.7,
+      "left": 215.7,
+      "rotate": 90,
+      "attrs": { "volume": "0.1" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": 63.8,
+      "left": -48,
+      "attrs": { "color": "green", "xray": "1" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+    [ "rgb1:R", "esp:D21", "red", [ "v0" ] ],
+    [ "rgb1:G", "esp:D22", "green", [ "v0" ] ],
+    [ "rgb1:B", "esp:D23", "blue", [ "v0" ] ],
+    [ "rgb1:COM", "esp:GND.1", "black", [ "v0" ] ],
+    [ "bz1:1", "esp:GND.1", "black", [ "v-19.2", "h-38.1" ] ],
+    [ "bz1:2", "esp:D13", "red", [ "v38", "h-163.2", "v-76.6" ] ],
+    [ "btn1:1.r", "esp:D26", "green", [ "h38.6", "v19.3" ] ],
+    [ "btn1:2.r", "esp:GND.2", "black", [ "h19.4", "v48.3" ] ]
+  ],
+  "dependencies": {}
+}
