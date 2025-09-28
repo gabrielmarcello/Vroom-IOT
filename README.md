@@ -40,7 +40,8 @@ Acesse a simulação diretamente pelo link:
 
 ## 📦 Node-RED
 
-- ⚠️ **É necessário instalar o pacote `node-red-dashboard` no Node-RED.**
+- ⚠️ **É necessário instalar os pacotes `node-red-dashboard` e `node-red-node-ui-table`  no Node-RED.**
+
 - 🗂️ O fluxo está disponível na pasta `node-red` deste repositório.
 - 📊 Acesse o dashboard em:  
   👉 [http://localhost:1880/ui](http://localhost:1880/ui)
@@ -72,7 +73,7 @@ Acesse a simulação diretamente pelo link:
 ## 🛠️ Como Executar
 
 1. Instale o [Node-RED](https://nodered.org/)  
-2. Instale o pacote `node-red-dashboard`  
+2. Instale os pacotes `node-red-dashboard` e `node-red-node-ui-table` 
 3. Importe o fluxo disponível na pasta `node-red` no editor do Node-RED  
 4. Inicie o Node-RED e acesse o painel em [http://localhost:1880/ui](http://localhost:1880/ui)  
 5. Para a simulação, abra o projeto no Wokwi pelo link [https://wokwi.com/projects/431580008684127233](https://wokwi.com/projects/431580008684127233)  

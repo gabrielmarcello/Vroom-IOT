@@ -11,11 +11,10 @@ const char *PASSWORD = "";
 const char *BROKER_MQTT = "broker.hivemq.com";
 const int BROKER_PORT = 1883;
 const char *ID_MQTT = "esp32_mqtt";
-const char *TOPIC_SUBSCRIBE_LED = "fiap/iot/led/state";
 const char *TOPIC_PUBLISH_STATUS = "fiap/iot/led/status";
 
-WiFiClient espClient;
-PubSubClient client(espClient);
+// ID do dispositivo
+const int id_tag = 1;
 
 // Pinos
 const int pinRed = 21;
@@ -42,10 +41,6 @@ const unsigned long buzzDuration = 250;
 bool buzzerOn = false;
 unsigned long buzzerStartTime = 0;
 
-// Para enviar status só uma vez
-bool lastLedOn = false;
-int lastColor = -1;
-
 // Estados do LED e mensagem
 struct LedStatus {
   uint8_t r, g, b;
@@ -62,6 +57,9 @@ LedStatus statuses[] = {
   {130, 0, 255,   "Motocicleta Pronta para Uso"}
 };
 const int totalStatuses = sizeof(statuses) / sizeof(statuses[0]);
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 void setColor(uint8_t r, uint8_t g, uint8_t b) {
   analogWrite(pinRed, r);
@@ -81,19 +79,23 @@ void stopBuzz() {
 }
 
 void publishStatus() {
-  if (ledOn != lastLedOn || currentColor != lastColor) {
-    String msg;
-    if (ledOn) {
-      msg = statuses[currentColor].message;
-    } else {
-      msg = "Desligado";
-    }
-    client.publish(TOPIC_PUBLISH_STATUS, msg.c_str());
-    Serial.println("Status publicado: " + msg);
+  StaticJsonDocument<200> doc;
+  doc["id_tag"] = id_tag;
+  doc["led_on"] = ledOn;
 
-    lastLedOn = ledOn;
-    lastColor = currentColor;
+  if (ledOn) {
+    doc["problema"] = statuses[currentColor].message;
+    doc["color"] = currentColor;
+  } else {
+    doc["problema"] = "Desligado";
+    doc["color"] = -1;
   }
+
+  char buffer[256];
+  serializeJson(doc, buffer);
+  client.publish(TOPIC_PUBLISH_STATUS, buffer);
+  Serial.print("Enviado MQTT: ");
+  Serial.println(buffer); // LOG do envio
 }
 
 void updateLed() {
@@ -108,46 +110,15 @@ void updateLed() {
   publishStatus();
 }
 
-// Callback MQTT para receber JSON { power, color }
-void mqttCallback(char *topic, byte *payload, unsigned int length) {
-  StaticJsonDocument<200> doc;
-  DeserializationError error = deserializeJson(doc, payload, length);
-  if (error) {
-    Serial.println("Erro ao parsear JSON MQTT");
-    return;
-  }
-
-  const char* power = doc["power"];  // "on" ou "off"
-  int color = doc["color"] | -1;     // pode ser -1 se não enviar
-
-  bool newLedOn = (String(power) == "ON");
-
-  bool changed = false;
-  if (ledOn != newLedOn) {
-    ledOn = newLedOn;
-    changed = true;
-  }
-
-  if (color >= 0 && color < totalStatuses && currentColor != color) {
-    currentColor = color;
-    changed = true;
-  }
-
-  if (changed) {
-    updateLed();
-  }
-}
-
 void reconnectMQTT() {
   while (!client.connected()) {
-    Serial.print("Conectando ao MQTT... ");
+    Serial.print("Tentando conectar MQTT...");
     if (client.connect(ID_MQTT)) {
-      Serial.println("conectado!");
-      client.subscribe(TOPIC_SUBSCRIBE_LED);
+      Serial.println("Conectado!");
     } else {
-      Serial.print("falhou, rc=");
+      Serial.print("Falhou, rc=");
       Serial.print(client.state());
-      Serial.println(" tentando em 5s");
+      Serial.println(", tentando novamente em 5s");
       delay(5000);
     }
   }
@@ -162,30 +133,26 @@ void setup() {
   pinMode(buttonPin, INPUT_PULLUP);
   pinMode(buzzerPin, OUTPUT);
 
+  Serial.println("Conectando WiFi...");
   WiFi.begin(SSID, PASSWORD);
-  Serial.print("Conectando WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nWiFi conectado!");
+  Serial.println("\nWiFi conectado! IP: " + WiFi.localIP().toString());
 
   client.setServer(BROKER_MQTT, BROKER_PORT);
-  client.setCallback(mqttCallback);
 
   updateLed();
-  lastBuzzTime = millis();
 }
 
 void loop() {
-  if (!client.connected()) {
-    reconnectMQTT();
-  }
+  if (!client.connected()) reconnectMQTT();
   client.loop();
 
-  // Leitura do botão com debounce e controle do LED local
   int buttonState = digitalRead(buttonPin);
 
+  // Debounce
   if (buttonState == LOW && !buttonPressed) {
     if (millis() - lastDebounceTime > debounceDelay) {
       buttonPressed = true;
@@ -195,36 +162,37 @@ void loop() {
     }
   }
 
+  // Long press alterna LED
   if (buttonPressed && buttonState == LOW) {
     if (!longPressHandled && millis() - buttonPressTime > 1000) {
       ledOn = !ledOn;
+      Serial.println("Long Press: LED alternado para " + String(ledOn ? "ON" : "OFF"));
       updateLed();
       longPressHandled = true;
     }
   }
 
+  // Short press muda cor
   if (buttonState == HIGH && buttonPressed) {
     if (millis() - lastDebounceTime > debounceDelay) {
       buttonPressed = false;
       lastDebounceTime = millis();
-      if (!longPressHandled && ledOn) {
-        currentColor = (currentColor + 1) % totalStatuses;
+      if (!longPressHandled) {
+        if (!ledOn) ledOn = true;  // liga LED se estiver desligado
+        else currentColor = (currentColor + 1) % totalStatuses; // muda cor
+        Serial.println("Short Press: LED atualizado, cor atual = " + String(currentColor));
         updateLed();
       }
     }
   }
 
-  // Controle do buzzer sem delay
+  // Controle buzzer
   unsigned long now = millis();
   if (ledOn) {
     if (!buzzerOn && (now - lastBuzzTime >= buzzInterval)) {
       startBuzz();
       lastBuzzTime = now;
     }
-    if (buzzerOn && (now - buzzerStartTime >= buzzDuration)) {
-      stopBuzz();
-    }
-  } else {
-    stopBuzz();
-  }
+    if (buzzerOn && (now - buzzerStartTime >= buzzDuration)) stopBuzz();
+  } else stopBuzz();
 }

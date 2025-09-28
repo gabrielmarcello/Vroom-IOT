@@ -1,19 +1,19 @@
 [
     {
-        "id": "9b03f48430195a1c",
+        "id": "b08ec36068ad902d",
         "type": "tab",
         "label": "Dashboard Eventos Motos",
         "disabled": false
     },
     {
-        "id": "3aa602797622144f",
+        "id": "0e9338c9ac026b37",
         "type": "mqtt in",
-        "z": "9b03f48430195a1c",
+        "z": "b08ec36068ad902d",
         "name": "MQTT Status LED",
         "topic": "fiap/iot/led/status",
         "qos": "2",
         "datatype": "auto-detect",
-        "broker": "3a51b406bd7f7684",
+        "broker": "mqtt_broker",
         "nl": false,
         "rap": false,
         "inputs": 0,
@@ -21,45 +21,46 @@
         "y": 160,
         "wires": [
             [
-                "db61ca201fafa69d"
+                "35ecd2c07f1d078b"
             ]
         ]
     },
     {
-        "id": "db61ca201fafa69d",
+        "id": "35ecd2c07f1d078b",
         "type": "function",
-        "z": "9b03f48430195a1c",
+        "z": "b08ec36068ad902d",
         "name": "Converter e adicionar evento",
-        "func": "// Converte payload para objeto JSON\nlet payload = msg.payload;\nif (typeof payload === 'string') {\n    try {\n        payload = JSON.parse(payload);\n    } catch(e) {\n        node.warn('JSON inválido: ' + payload);\n        return null;\n    }\n}\n\n// Adiciona timestamp local\nlet now = new Date();\npayload.timestamp = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');\n\n// Garante campos obrigatórios\npayload.id_tag = payload.id_tag || '';\npayload.led_on = payload.led_on !== undefined ? payload.led_on : '';\npayload.problema = payload.problema || '';\npayload.color = payload.color !== undefined ? payload.color : '';\n\n// Recupera tabela atual e adiciona novo evento\nlet table = flow.get('event_table') || [];\ntable.push(payload);\nflow.set('event_table', table);\n\nmsg.payload = table;\nreturn msg;",
+        "func": "// Converte payload para objeto JSON\nlet payload = msg.payload;\nif (typeof payload === 'string') {\n    try {\n        payload = JSON.parse(payload);\n    } catch(e) {\n        node.warn('JSON inválido: ' + payload);\n        return null;\n    }\n}\n\n// Adiciona timestamp local\nlet now = new Date();\npayload.timestamp = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');\n\n// Garante campos obrigatórios\npayload.id_tag = payload.id_tag || '';\npayload.led_on = payload.led_on !== undefined ? payload.led_on : false;\npayload.problema = payload.problema || '';\npayload.color = payload.color !== undefined ? payload.color : -1;\n\n// Recupera tabela atual e adiciona novo evento\nlet table = flow.get('event_table') || [];\ntable.push(payload);\nflow.set('event_table', table);\n\nmsg.payload = table;\nreturn msg;",
         "outputs": 1,
         "x": 360,
         "y": 160,
         "wires": [
             [
-                "f2e29e789424121a",
-                "0c628b4d7bcecf62"
+                "781de62de7bd5dab",
+                "03bc0bf34326cb0f",
+                "d681b0b782501b8c"
             ]
         ]
     },
     {
-        "id": "f2e29e789424121a",
+        "id": "781de62de7bd5dab",
         "type": "function",
-        "z": "9b03f48430195a1c",
+        "z": "b08ec36068ad902d",
         "name": "Mapear número para cor",
         "func": "// Mapear números de cor para nomes\nconst cores = {\n    0: 'Vermelho',\n    1: 'Verde',\n    2: 'Azul',\n    3: 'Amarelo',\n    4: 'Laranja',\n    5: 'Vinho',\n    6: 'Roxo'\n};\n\nmsg.payload = msg.payload.map(evento => ({\n    ...evento,\n    color: (evento.color !== undefined && cores[evento.color] !== undefined) ? cores[evento.color] : 'Desligado'\n}));\n\nreturn msg;",
         "outputs": 1,
-        "x": 630,
+        "x": 730,
         "y": 160,
         "wires": [
             [
-                "15ad9bc4fabc207f"
+                "da0e9017de84cced"
             ]
         ]
     },
     {
-        "id": "15ad9bc4fabc207f",
+        "id": "da0e9017de84cced",
         "type": "ui_table",
-        "z": "9b03f48430195a1c",
+        "z": "b08ec36068ad902d",
         "group": "aa4cef9b46366334",
         "name": "Tabela Eventos",
         "order": 1,
@@ -69,57 +70,103 @@
             {
                 "field": "timestamp",
                 "title": "Timestamp",
-                "width": "",
                 "align": "center"
             },
             {
                 "field": "id_tag",
                 "title": "ID Tag",
-                "width": "",
                 "align": "center"
             },
             {
                 "field": "led_on",
                 "title": "LED",
-                "width": "",
                 "align": "center"
             },
             {
                 "field": "problema",
                 "title": "Problema",
-                "width": "",
                 "align": "center"
             },
             {
                 "field": "color",
                 "title": "Cor",
-                "width": "",
                 "align": "center"
             }
         ],
         "outputs": 0,
-        "x": 880,
+        "x": 1080,
         "y": 160,
         "wires": []
     },
     {
-        "id": "0c628b4d7bcecf62",
+        "id": "03bc0bf34326cb0f",
         "type": "file",
-        "z": "9b03f48430195a1c",
+        "z": "b08ec36068ad902d",
         "name": "Salvar histórico JSON",
         "filename": "historico_mottu.json",
         "appendNewline": true,
         "createDir": true,
         "overwriteFile": "false",
         "encoding": "utf8",
-        "x": 640,
-        "y": 240,
+        "x": 720,
+        "y": 80,
         "wires": [
             []
         ]
     },
     {
-        "id": "3a51b406bd7f7684",
+        "id": "d681b0b782501b8c",
+        "type": "function",
+        "z": "b08ec36068ad902d",
+        "name": "Preparar payload API",
+        "func": "// Pega apenas o último evento da tabela\nlet table = msg.payload;\nlet lastEvent = table[table.length - 1];\n\n// Cria objeto que API espera\nmsg.payload = {\n    IdTag: lastEvent.id_tag,\n    LedOn: lastEvent.led_on,\n    Problema: lastEvent.problema,\n    Cor: lastEvent.color,\n    Timestamp: lastEvent.timestamp\n};\n\n// Configura headers JSON\nmsg.headers = { 'Content-Type': 'application/json' };\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 260,
+        "wires": [
+            [
+                "4987fe1ac5a7ad23"
+            ]
+        ]
+    },
+    {
+        "id": "4987fe1ac5a7ad23",
+        "type": "http request",
+        "z": "b08ec36068ad902d",
+        "name": "Enviar para API .NET",
+        "method": "POST",
+        "ret": "txt",
+        "url": "http://localhost:5189/historico",
+        "headers": {},
+        "x": 1100,
+        "y": 260,
+        "wires": [
+            [
+                "f64e76b746fb397e"
+            ]
+        ]
+    },
+    {
+        "id": "f64e76b746fb397e",
+        "type": "debug",
+        "z": "b08ec36068ad902d",
+        "name": "Resposta API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 1360,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "mqtt_broker",
         "type": "mqtt-broker",
         "name": "HiveMQ Broker",
         "broker": "broker.hivemq.com",
@@ -150,7 +197,7 @@
         "hidden": false
     },
     {
-        "id": "d6959b8a83ddc103",
+        "id": "92b35717ebed9d35",
         "type": "global-config",
         "env": [],
         "modules": {
