@@ -34,7 +34,7 @@ O sistema simula o funcionamento de uma tag inteligente com:
 ## 🔌 Projeto no Wokwi
 
 Acesse a simulação diretamente pelo link:  
-👉 [https://wokwi.com/projects/431580008684127233](https://wokwi.com/projects/431580008684127233)
+👉 [https://wokwi.com/projects/443278338191651841](https://wokwi.com/projects/443278338191651841)
 
 ---
 
