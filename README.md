@@ -52,7 +52,7 @@ Acesse a simulação diretamente pelo link:
 ## 🎥 Vídeos
 
 - 📽️ **Pitch das Tecnologias Utilizadas:**  
-  👉 [https://youtu.be/OuXchSjabAA](https://youtu.be/OuXchSjabAA)
+  👉 [https://www.youtube.com/watch?v=OuXchSjabAA](https://www.youtube.com/watch?v=OuXchSjabAA)
 
 - 🧠 **Apresentação da Solução (Pitch Final):**  
   👉 [https://youtu.be/UBFGZRqeJI0?si=7aTC5ctlODD1IMW3](https://youtu.be/UBFGZRqeJI0?si=7aTC5ctlODD1IMW3)
