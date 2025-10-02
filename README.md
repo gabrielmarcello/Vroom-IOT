@@ -59,6 +59,12 @@ Acesse a simulação diretamente pelo link:
 
 ---
 
+## Link para API
+
+- https://github.com/gabrielmarcello/VroomAPI
+
+---
+
 ## 📁 Estrutura do Projeto
 
 - `codigo-fonte-wokwi/` – Código da simulação IoT no Wokwi  
