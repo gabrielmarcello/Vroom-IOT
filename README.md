@@ -17,7 +17,6 @@ O sistema simula o funcionamento de uma tag inteligente com:
 
 - LED RGB que muda de cor a cada clique no botão.
 - Buzzer que emite sons diferentes conforme a cor.
-- Botão que altera o estado da LED.
 - Esses eventos são enviados para o **Node-RED**, onde são processados, exibidos em tempo real em um **dashboard interativo** e gravados em arquivo JSON para histórico.
 
 ---
@@ -27,14 +26,14 @@ O sistema simula o funcionamento de uma tag inteligente com:
 - **Node-RED** – Processamento e roteamento dos dados da tag.  
 - **Node-RED Dashboard** – Visualização em tempo real dos dados da tag.  
 - **MQTT (simulado no Wokwi)** – Comunicação entre o dispositivo e o servidor.  
-- **Registro Persistente em Arquivo (JSON)** – Histórico salvo em `historico_mottu.json` (caminho relativo ao diretório do Node-RED).
+- **Registro Persistente em Banco de dados** – Histórico salvo no banco de dados Oracle.
 
 ---
 
 ## 🔌 Projeto no Wokwi
 
 Acesse a simulação diretamente pelo link:  
-👉 [https://wokwi.com/projects/445701307077671937](https://wokwi.com/projects/445701307077671937)
+👉 [https://wokwi.com/projects/445923098695576577](https://wokwi.com/projects/445923098695576577)
 
 ---
 
@@ -45,7 +44,6 @@ Acesse a simulação diretamente pelo link:
 - 🗂️ O fluxo está disponível na pasta `node-red` deste repositório.
 - 📊 Acesse o dashboard em:  
   👉 [http://localhost:1880/ui](http://localhost:1880/ui)
-- 💾 O histórico de eventos é salvo automaticamente em `historico_mottu.json`, dentro do diretório em que o Node-RED está sendo executado.
 
 ---
 
@@ -71,7 +69,6 @@ Acesse a simulação diretamente pelo link:
 - `node-red/` – Fluxo do Node-RED exportado  
 - `dashboard/` – Link da interface do painel  
 - `descritivo-solucao/` – PDF com a descrição da solução  
-- `historico_mottu.json` – Arquivo de log gerado em tempo de execução  
 - `README.md` – Este arquivo  
 
 ---
@@ -82,8 +79,7 @@ Acesse a simulação diretamente pelo link:
 2. Instale os pacotes `node-red-dashboard` e `node-red-node-ui-table` 
 3. Importe o fluxo disponível na pasta `node-red` no editor do Node-RED  
 4. Inicie o Node-RED e acesse o painel em [http://localhost:1880/ui](http://localhost:1880/ui)  
-5. Para a simulação, abra o projeto no Wokwi pelo link [https://wokwi.com/projects/431580008684127233](https://wokwi.com/projects/431580008684127233)  
-6. O histórico de eventos será salvo automaticamente em `historico_mottu.json` no diretório do Node-RED.  
+5. Para a simulação, abra o projeto no Wokwi pelo link [https://wokwi.com/projects/445923098695576577](https://wokwi.com/projects/445923098695576577)  
 
 ---
 

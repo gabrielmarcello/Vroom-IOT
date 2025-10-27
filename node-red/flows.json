@@ -1,0 +1,22 @@
+[
+    {
+        "id": "560e65ac1931c53e",
+        "type": "function",
+        "z": "c135e9e9230ca27c",
+        "name": "Preparar e enviar para API v2",
+        "func": "// Pega o último evento recebido\nlet table = msg.payload;\nlet last = table[table.length - 1];\n\nif (!last) return null;\n\n// IdTag como string\nlet id = last.id_tag ? String(last.id_tag).trim() : \"\";\nif (!id) {\n    node.error(\"IdTag ausente ou inválido no payload: \" + JSON.stringify(last));\n    return null;\n}\n\n// Timestamp em ISO 8601\nlet timestamp;\nif (last.timestamp) {\n    const partes = last.timestamp.match(/(\\d{2})\\/(\\d{2})\\/(\\d{4}) (\\d{2}):(\\d{2}):(\\d{2})/);\n    if (partes) {\n        const [_, dia, mes, ano, hora, min, seg] = partes;\n        timestamp = `${ano}-${mes}-${dia}T${hora}:${min}:${seg}`;\n    } else {\n        timestamp = new Date().toISOString();\n    }\n} else {\n    timestamp = new Date().toISOString();\n}\n\n// Cor como número\nlet cores = {\n    \"Vermelho\": 0,\n    \"Verde\": 1,\n    \"Azul\": 2,\n    \"Amarelo\": 3,\n    \"Laranja\": 4,\n    \"Vinho\": 5,\n    \"Roxo\": 6\n};\n\nlet corNumero = parseInt(last.color);\nif (isNaN(corNumero)) corNumero = cores[last.color] ?? 0;\n\n// Monta payload\nmsg.payload = {\n    idTag: id,               // camelCase\n    timestamp: timestamp,    // camelCase\n    ledOn: !!last.led_on,    // camelCase\n    problema: last.problema || \"\",\n    cor: corNumero           // camelCase e número\n};\n\n// Cabeçalhos HTTP\nmsg.headers = { \"Content-Type\": \"application/json\" };\n\n// Log para debug\nnode.warn(\"Payload enviado para API: \" + JSON.stringify(msg.payload, null, 2));\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 200,
+        "wires": [
+            [
+                "9b7b3dc91c636344"
+            ]
+        ]
+    }
+]
