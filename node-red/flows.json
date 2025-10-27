@@ -1,5 +1,175 @@
 [
     {
+        "id": "c135e9e9230ca27c",
+        "type": "tab",
+        "label": "Flow IoT LED API v2",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "44983692a08c2848",
+        "type": "mqtt in",
+        "z": "c135e9e9230ca27c",
+        "name": "Status ESP32",
+        "topic": "fiap/iot/led/status/#",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "mosquitto_public",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 160,
+        "y": 140,
+        "wires": [
+            [
+                "4588750604f2cdd3"
+            ]
+        ]
+    },
+    {
+        "id": "4588750604f2cdd3",
+        "type": "function",
+        "z": "c135e9e9230ca27c",
+        "name": "Tratar status recebido",
+        "func": "// Se veio string, tenta converter para JSON\nif (typeof msg.payload === 'string') {\n    try {\n        msg.payload = JSON.parse(msg.payload);\n    } catch (err) {\n        node.error('Payload inválido: ' + msg.payload);\n        return null;\n    }\n}\n\n// Adiciona timestamp local\nmsg.payload.timestamp = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });\n\n// Salva no contexto global (último status)\nlet historico = global.get('historico') || [];\nhistorico.push(msg.payload);\n\n// Mantém só os últimos 20 registros\nif (historico.length > 20) historico.shift();\n\nglobal.set('historico', historico);\n\nreturn { payload: historico };",
+        "outputs": 1,
+        "x": 400,
+        "y": 140,
+        "wires": [
+            [
+                "fee980bc6ca4f53c",
+                "560e65ac1931c53e"
+            ]
+        ]
+    },
+    {
+        "id": "fee980bc6ca4f53c",
+        "type": "ui_table",
+        "z": "c135e9e9230ca27c",
+        "group": "89efbdf229dede44",
+        "name": "Tabela Status ESP32",
+        "order": 1,
+        "width": "10",
+        "height": "2",
+        "columns": [
+            {
+                "field": "id_tag",
+                "title": "ID Tag",
+                "width": "80px",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "led_on",
+                "title": "LED Ligado",
+                "width": "100px",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "color",
+                "title": "Cor",
+                "width": "100px",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "problema",
+                "title": "Problema",
+                "width": "200px",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "timestamp",
+                "title": "Horário",
+                "width": "200px",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            }
+        ],
+        "outputs": 0,
+        "cts": false,
+        "x": 700,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "0e66e9b37a1b84d9",
+        "type": "http in",
+        "z": "c135e9e9230ca27c",
+        "name": "API mudar LED",
+        "url": "/led",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 340,
+        "wires": [
+            [
+                "672f8d31acd921fd"
+            ]
+        ]
+    },
+    {
+        "id": "672f8d31acd921fd",
+        "type": "function",
+        "z": "c135e9e9230ca27c",
+        "name": "Montar JSON MQTT",
+        "func": "let id_tag;\nlet color;\n\nif (typeof msg.payload === \"string\") {\n    try {\n        msg.payload = JSON.parse(msg.payload);\n    } catch (e) {\n        node.error(\"Payload não é um JSON válido: \" + msg.payload);\n        return null;\n    }\n}\n\nid_tag = msg.payload.idTag || msg.payload.id_tag || msg.payload.IdTag;\ncolor = msg.payload.color || msg.payload.Color;\n\nif (id_tag === undefined) {\n    node.error(\"Campo idTag/id_tag não definido. Payload recebido: \" + JSON.stringify(msg.payload));\n    return null;\n}\n\nlet led_on = (color >= 0 && color < 7);\n\nmsg.topic = `fiap/iot/led/control/esp32_${id_tag.toString().padStart(3, '0')}`;\nmsg.payload = { id_tag, color, led_on };\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "x": 450,
+        "y": 340,
+        "wires": [
+            [
+                "2e90043934a2d5be",
+                "42527172fe5f8114"
+            ]
+        ]
+    },
+    {
+        "id": "2e90043934a2d5be",
+        "type": "mqtt out",
+        "z": "c135e9e9230ca27c",
+        "name": "Enviar comando para ESP32",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "broker": "mosquitto_public",
+        "x": 780,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "42527172fe5f8114",
+        "type": "http response",
+        "z": "c135e9e9230ca27c",
+        "name": "Retornar OK",
+        "statusCode": "200",
+        "headers": {},
+        "x": 780,
+        "y": 400,
+        "wires": []
+    },
+    {
         "id": "560e65ac1931c53e",
         "type": "function",
         "z": "c135e9e9230ca27c",
@@ -18,5 +188,94 @@
                 "9b7b3dc91c636344"
             ]
         ]
+    },
+    {
+        "id": "9b7b3dc91c636344",
+        "type": "http request",
+        "z": "c135e9e9230ca27c",
+        "name": "Enviar para API .NET v2",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://localhost:5189/v2/iot/historico",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [
+            {
+                "keyType": "other",
+                "keyValue": "X-Api-Key",
+                "valueType": "other",
+                "valueValue": "minha-api-key"
+            }
+        ],
+        "x": 990,
+        "y": 200,
+        "wires": [
+            [
+                "f528d77690757aff"
+            ]
+        ]
+    },
+    {
+        "id": "f528d77690757aff",
+        "type": "debug",
+        "z": "c135e9e9230ca27c",
+        "name": "Resposta API v2",
+        "active": true,
+        "tosidebar": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 1230,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "mosquitto_public",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Público",
+        "broker": "test.mosquitto.org",
+        "port": "1883",
+        "clientid": "node_red_control",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "15",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthQos": "0",
+        "willQos": "0"
+    },
+    {
+        "id": "89efbdf229dede44",
+        "type": "ui_group",
+        "name": "Monitoramento IoT",
+        "tab": "de6fcffdce1b9f69",
+        "order": 1,
+        "disp": true,
+        "width": "10",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "de6fcffdce1b9f69",
+        "type": "ui_tab",
+        "name": "Dashboard IoT",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "09d0bd1e0cd34d8b",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-ui-table": "0.4.5",
+            "node-red-dashboard": "3.6.6"
+        }
     }
 ]
